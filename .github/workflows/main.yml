@@ -35,6 +35,27 @@ jobs:
       shell: bash
       run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
       id: extract_branch
+    - name: Test pkg
+      run: |
+          chmod +x dist/cdxgen*
+          ./dist/cdxgen-linux -v
+          ./dist/cdxgen-linux .
+    - uses: actions/upload-artifact@v1
+       with:
+          name: dist-16
+          path: dist-16
+    - uses: actions/upload-artifact@v1
+       with:
+          name: dist
+          path: dist
+    - name: Generate BOM using cdxgen
+      - uses: appthreat/cdxgen-action@v1
+        with:
+          output: "./reports/bom.xml"
+      - uses: actions/upload-artifact@v1
+        with:
+          name: reports
+          path: reports  
     - name: NextGen Static Analysis
       # Run the analyzer and wait for it to finis, the app is a part of a group and we can dynamicaly capture the branch we're on for tagging. It's a java app and we point to where the binary can be found                        
       run: ${GITHUB_WORKSPACE}/sl analyze --wait --app elasticsearch --tag branch=${{ github.head_ref || steps.extract_branch.outputs.branch }} --java --cpg target/elasticjar-*.jar
